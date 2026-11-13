@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fatih Firarda - İndirme Sayfası</title>
+    <style>
+        /* Genel Sayfa Tasarımı */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            /* Mor tonda şık bir gradient (geçişli) arka plan */
+            background: linear-gradient(135deg, #f5f0fa 0%, #e2d1f9 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Ana Başlık Tasarımı */
+        h1 {
+            color: rgb(130, 31, 249);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Alt Açıklama Yazısı */
+        h2 {
+            color: #555;
+            font-size: 1.2rem;
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        /* İndirme Butonu Tasarımı */
+        button {
+            background-color: rgb(130, 31, 249);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px; /* Kenarları tamamen yuvarlatılmış modern hap buton */
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(130, 31, 249, 0.3);
+            transition: all 0.3s ease; /* Yumuşak geçiş efekti */
+        }
+
+        /* Butonun üzerine gelince (Hover) olacaklar */
+        button:hover {
+            background-color: rgb(110, 20, 215);
+            transform: translateY(-3px); /* Hafifçe yukarı kalkma efekti */
+            box-shadow: 0 6px 20px rgba(130, 31, 249, 0.4);
+        }
+
+        /* Butona tıklandığında */
+        button:active {
+            transform: translateY(1px);
+        }
+    </style>    
+</head>
+<body>
+
+    <h1>Fatih Firarda<br>İndir</h1>
+
+    <h2>Aşağıdaki butona tıklayın ve indirmeyi başlatın.</h2>
+    
+    <!-- url_for kullanarak güvenli bir bağlantı oluşturuyoruz -->
+    <a href="{{ url_for('download_file', filename='Fatih Firarda_1_2.apk') }}" style="text-decoration: none;">
+        <button>📥 Fatih Firarda APK İndir</button>
+    </a>
+
+</body>
+</html>
