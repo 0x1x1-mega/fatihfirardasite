@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fatih Firarda</title>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3eef8;--card:#ffffff;--ink:#2a1840;--mut:#6b5a82;--acc:#ff5a36;--accink:#ffffff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -31,7 +34,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 #pause-screen{position:fixed;inset:0;background:rgba(10,5,25,.85);z-index:20;display:none;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-family:system-ui,sans-serif;padding:20px}
 .panel-card{position:relative;max-height:calc(100vh - 40px);overflow-y:auto;background:var(--card);color:var(--ink);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.5);text-align:left}
 .panel-card h2{padding:0 44px;font-family:Bungee,Impact,sans-serif;margin-top:0;color:var(--acc);text-align:center;font-size:24px}
-#panel-close,#shop-close,#char-close,#map-close{position:absolute;top:10px;right:10px;margin:0;width:44px;height:44px;padding:0;border-radius:50%;font-family:system-ui,sans-serif;font-size:22px;line-height:1;background:rgba(0,0,0,.14);color:var(--ink);display:flex;align-items:center;justify-content:center}
+#panel-close,#shop-close,#char-close,#map-close,#pf-close,#pl-close{position:absolute;top:10px;right:10px;margin:0;width:44px;height:44px;padding:0;border-radius:50%;font-family:system-ui,sans-serif;font-size:22px;line-height:1;background:rgba(0,0,0,.14);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .section-title{font-weight:bold;margin-bottom:6px;font-size:14px;color:var(--mut);border-bottom:1px solid rgba(0,0,0,.1);padding-bottom:4px}
 .admin-group{margin-top:16px;background:rgba(0,0,0,.03);padding:12px;border-radius:10px}
 .admin-row{display:flex;gap:8px;margin-top:8px}
@@ -63,6 +66,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .sb.on{background:var(--acc);color:var(--accink)}
 .sb.no{opacity:.45}
 .cp{width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:top;background:rgba(0,0,0,.1)}
+#pf-screen,#pl-screen{position:fixed;inset:0;background:rgba(10,5,25,.88);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
+#pf-screen input{user-select:text;-webkit-user-select:text}
 #on-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(20,10,40,.6);z-index:60}
 #on-card{max-height:92vh;overflow:auto}
 .ob{display:block;width:100%;font-size:17px;padding:12px;margin-top:10px}
@@ -81,6 +86,10 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 <button id="atk" aria-label="Katana salla">⚔️</button>
 <button id="mg" aria-label="Büyü at">🔮</button>
 <button id="settings-btn" title="Ayarlar">⚙️</button>
+<div id="inv-toast" style="display:none;position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:90;background:var(--card);color:var(--ink);border-radius:16px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center;max-width:420px;margin:0 auto">
+<div id="inv-txt" style="font-weight:700"></div>
+<div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><button class="sb" id="inv-ok">⚔️ Kabul</button><button class="sb no" id="inv-no" style="opacity:1;background:rgba(0,0,0,.18);color:var(--ink)">Reddet</button></div>
+</div>
 
 <!-- Mağaza -->
 <div id="shop-screen">
@@ -117,6 +126,24 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   </div>
 </div>
 
+<!-- Profil -->
+<div id="pf-screen">
+  <div class="panel-card">
+    <button id="pf-close" aria-label="Kapat">✕</button>
+    <h2>PROFİL</h2>
+    <div id="pf-body"></div>
+  </div>
+</div>
+
+<!-- Oyuncular -->
+<div id="pl-screen">
+  <div class="panel-card">
+    <button id="pl-close" aria-label="Kapat">✕</button>
+    <h2>OYUNCULAR</h2>
+    <div id="pl-body"></div>
+  </div>
+</div>
+
 <!-- Ayarlar / Duraklatma Paneli -->
 <div id="pause-screen">
   <div class="panel-card">
@@ -124,7 +151,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <h2>OYUN DURDURULDU</h2>
     <p style="text-align:center;margin-bottom:16px;">Oyuna devam etmek için alttaki butona basabilir veya ayarlardan hileleri açabilirsin.</p>
 
-    <div id="opt-row" style="display:flex;flex-direction:column;gap:8px;margin:12px 0"><button class="cheat-btn" id="opt-adm">🛠️ Admin Paneli</button><button class="cheat-btn" id="opt-sub">🔧 Alt Panel</button></div>
+    <div id="opt-row" style="display:flex;flex-direction:column;gap:8px;margin:12px 0"><button class="cheat-btn" id="opt-adm">🛠️ Admin Paneli</button><button class="cheat-btn" id="opt-sub">🔧 Alt Panel</button><button class="cheat-btn" id="kur-open" style="display:none;background:#b8860b">👑 Kurucu Paneli</button></div>
     <button class="cheat-btn" id="opt-back" style="display:none;margin:8px 0">← Seçeneklere dön</button>
     <div class="tabs" id="adv-tabs" style="display:none"><button class="tab-btn on" id="tab-adm">ADMIN PANELİ</button><button class="tab-btn" id="tab-sub">ALT PANEL</button></div>
     <div class="admin-group" id="pane-adm" style="display:none">
@@ -179,10 +206,19 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 <button id="go">Başla</button><br>
 <button id="shop-open" style="font-size:15px;padding:10px 22px;background:#7a3f7f;color:#fff">🛒 Mağaza</button>
 <button id="char-open" style="font-size:15px;padding:10px 22px;background:#2f5f8a;color:#fff;margin-left:8px">🧑 Karakter</button><br>
-<button id="map-open" style="font-size:15px;padding:10px 22px;background:#2a6a35;color:#fff">🗺️ Harita</button><br><button id="on-open" style="font-size:15px;padding:10px 22px;background:#1b7f9e;color:#fff;margin-top:10px">🌐 Online 1v1</button>
+<button id="map-open" style="font-size:15px;padding:10px 22px;background:#2a6a35;color:#fff">🗺️ Harita</button><br><button id="on-open" style="font-size:15px;padding:10px 22px;background:#1b7f9e;color:#fff;margin-top:10px">🌐 Online 1v1</button><button id="pf-open" style="font-size:15px;padding:10px 22px;background:#5b3fa0;color:#fff;margin-top:10px;margin-left:8px">👤 Profil</button><br><button id="pl-open" style="font-size:15px;padding:10px 22px;background:#2a8a6a;color:#fff;margin-top:10px">👥 Oyuncular</button>
 </div></div>
 <script>
 (function(){
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDyIqflWdKW58zyoHJLsewIBzkQrbMlWWM",
+  authDomain: "fatih-firarda.firebaseapp.com",
+  databaseURL: "https://fatih-firarda-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fatih-firarda",
+  storageBucket: "fatih-firarda.firebasestorage.app",
+  messagingSenderId: "863625983431",
+  appId: "1:863625983431:web:03748e5a600d6bebf955e2"
+};
 var friendImg = new Image();
 friendImg.src = "data:image/webp;base64,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";
 var faceImg = new Image();
@@ -547,7 +583,7 @@ ctx.fillStyle='#b3202f';ctx.fillRect(-bw*.55,-.15*U,bw*1.1,.35*U)}
 function hit(){
 if(cheatGod) return;
 st='over';shake=.4;document.getElementById('atk').style.display='none';mg.style.display='none';settingsBtn.style.display='none';pauseScreen.style.display='none';
-var m=Math.floor(dist/100);if(m>best){best=m;try{localStorage.setItem('mk_best',best)}catch(e){}}
+var m=Math.floor(dist/100);if(m>best){best=m;try{localStorage.setItem('mk_best',best)}catch(e){}}fbSync();
 setTimeout(function(){
 if(MATCH){matchOver(m);return}
 document.getElementById('t').textContent='Yakalandın!';
@@ -826,7 +862,7 @@ function checkResult(){
   var o=NET.op||{n:'Rakip',sc:0,dn:0},gone=NET.gone,fin=gone||o.dn===NET.round;
   var forfeit=gone&&o.dn!==NET.round,m=NET.my,win=forfeit||m>o.sc,draw=!forfeit&&m===o.sc;
   var h='<h1>'+(!fin?'Rakip koşuyor…':draw?'Berabere':win?'Kazandın! 🏆':'Kaybettin')+'</h1><div class="big2">'+m+' m <small>vs</small> '+(forfeit?'—':o.sc+' m')+'</div><p>'+(forfeit?'Rakip maçtan ayrıldı.':fin?esc(o.n)+' bitirdi.':esc(o.n)+' hâlâ koşuyor, bitince sonuç belli olur.')+'</p>';
-  if(fin&&!NET.fin){NET.fin=true;var s=NET.st;s.s=Math.max(s.s,m);s.g++;if(win&&!draw)s.w++;s.h.unshift({o:o.n,a:m,b:forfeit?0:o.sc,w:win&&!draw});s.h=s.h.slice(0,6);sv('mk_on',JSON.stringify(s))}
+  if(fin&&!NET.fin){NET.fin=true;var s=NET.st;s.s=Math.max(s.s,m);s.g++;if(win&&!draw)s.w++;s.h.unshift({o:o.n,a:m,b:forfeit?0:o.sc,w:win&&!draw});s.h=s.h.slice(0,6);sv('mk_on',JSON.stringify(s));fbSync()}
   if(fin&&!gone)h+='<button class="ob" data-a="rem">🔁 Rövanş</button>';
   V(h+'<button class="ob" data-a="exit" style="background:transparent;color:var(--mut)">Çık</button>');
 }
@@ -854,6 +890,164 @@ function openOpt(sub){var d=document;d.getElementById('opt-row').style.display='
 document.getElementById('opt-adm').onclick=function(){openOpt(0)};
 document.getElementById('opt-sub').onclick=function(){openOpt(1)};
 document.getElementById('opt-back').onclick=showOpts;
+
+
+/* ===== Firebase: anonim giriş, profil, roller ===== */
+var FB={on:false,uid:null,role:'',prof:null,last:''};
+var ROLE_TXT={kurucu:'👑 Kurucu',admin:'🛠️ Admin',alt:'🔧 Alt Panel'};
+function cleanName(v){return String(v||'').replace(/[^\p{L}\p{N} _-]/gu,'').trim().slice(0,14)}
+function applyRole(){
+  var r=FB.role;
+  $('kur-open').style.display=(r==='kurucu')?'block':'none';
+  if(r==='kurucu'||r==='admin'){isAdmin=true;adminLoginArea.style.display='none';cheatControls.style.display='flex'}
+  if(r==='kurucu'||r==='admin'||r==='alt'){$('sub-login-area').style.display='none';$('sub-controls').style.display='flex'}
+}
+var _reset0=reset;reset=function(){_reset0.apply(this,arguments);applyRole()};
+function fbSync(){
+  if(!FB.on||!FB.prof)return;
+  var d={b:clampN(best),w:clampN(NET.st.w),g:clampN(NET.st.g)},k=JSON.stringify(d);
+  if(k===FB.last)return;FB.last=k;
+  try{FB.db.ref('profiles/'+FB.uid).update(d).catch(function(){FB.last=''})}catch(e){FB.last=''}
+}
+function fbInit(){
+  try{
+    if(typeof firebase==='undefined'||!FIREBASE_CONFIG.apiKey){FB.err='sdk-yuklenemedi';return}
+    firebase.initializeApp(FIREBASE_CONFIG);
+    FB.db=firebase.database();
+    firebase.auth().onAuthStateChanged(function(u){
+      if(!u||FB.uid===u.uid)return;
+      FB.uid=u.uid;FB.on=true;
+      FB.db.ref('.info/serverTimeOffset').on('value',function(sn){FB.off=sn.val()||0});
+      FB.db.ref('.info/connected').on('value',function(sn){
+        if(sn.val()!==true)return;
+        var pr=FB.db.ref('presence/'+u.uid),TS=firebase.database.ServerValue.TIMESTAMP;
+        pr.onDisconnect().set({o:false,t:TS}).then(function(){return pr.set({o:true,t:TS})}).catch(function(){});
+      });
+      FB.db.ref('invites/'+u.uid).on('value',function(sn){FB.inv=sn.val();invCheck()},function(){});
+      FB.db.ref('roles/'+u.uid).on('value',function(sn){FB.role=sn.val()||'';applyRole()},function(){});
+      FB.db.ref('profiles/'+u.uid).on('value',function(sn){FB.prof=sn.val();if(FB.prof&&FB.prof.n&&!NET.nick){NET.nick=FB.prof.n;sv('mk_nick',NET.nick)}fbSync()},function(){});
+    });
+    firebase.auth().signInAnonymously().catch(function(e){FB.err=(e&&(e.code||e.message))||'bilinmiyor';if($('pf-screen').style.display==='flex')pfView()});
+  }catch(e){FB.err='hata: '+(e&&e.message||e)}
+}
+function pfView(){
+  var s=NET.st,p=FB.prof,nm=(p&&p.n)||NET.nick||'';
+  var h='<p style="text-align:center">'+(FB.on?'<span style="color:#2ec4b6">● Bağlı</span>':'<span style="color:#ff5a36">● Bağlı değil</span><br><small>İnternetini ve Firebase ayarlarını kontrol et.</small><br><small style="color:var(--mut)">Hata kodu: '+esc(FB.err||'bekleniyor…')+'</small>')+'</p>';
+  h+='<input class="oin" id="pf-name" maxlength="14" placeholder="Adın" value="'+esc(nm)+'">';
+  h+='<button class="ob" id="pf-save">💾 Kaydet</button><p id="pf-msg" style="text-align:center;min-height:18px;font-size:13px"></p>';
+  h+='<p style="text-align:center">Rekor: <b>'+clampN(best)+' m</b> · '+clampN(s.w)+' galibiyet / '+clampN(s.g)+' maç<br>Rolün: <b>'+(ROLE_TXT[FB.role]||'Oyuncu')+'</b></p>';
+  h+='<div class="section-title" style="margin-top:12px">🏆 EN İYİ 10</div><ol class="lb" id="pf-lb"><li><span>Yükleniyor…</span></li></ol>';
+  $('pf-body').innerHTML=h;
+  $('pf-name').onkeydown=function(e){if(e.key==='Enter')$('pf-save').click();e.stopPropagation()};
+  $('pf-name').onkeyup=function(e){e.stopPropagation()};
+  $('pf-save').onclick=pfSave;
+  if(!FB.on){$('pf-lb').innerHTML='<li><span>Bağlantı yok</span></li>';return}
+  FB.db.ref('profiles').orderByChild('b').limitToLast(10).once('value').then(function(sn){
+    var a=[];sn.forEach(function(c){var v=c.val()||{};a.push({u:c.key,n:v.n||'?',b:clampN(v.b)})});a.reverse();
+    $('pf-lb').innerHTML=a.length?a.map(function(r,i){return'<li><span>'+(i+1)+'. '+esc(String(r.n).slice(0,14))+(r.u===FB.uid?' (sen)':'')+'</span><span>'+r.b+' m</span></li>'}).join(''):'<li><span>Henüz kimse yok</span></li>';
+  }).catch(function(){$('pf-lb').innerHTML='<li><span>Liste alınamadı</span></li>'});
+}
+function pfSave(){
+  var n=cleanName($('pf-name').value),m=$('pf-msg');
+  if(!n){m.textContent='Bir ad yaz.';return}
+  NET.nick=n;sv('mk_nick',n);
+  if(!FB.on){m.textContent='Bu cihaza kaydedildi. İnternet yok, veritabanına yazılamadı.';return}
+  m.textContent='Kaydediliyor…';
+  FB.db.ref('profiles/'+FB.uid).update({n:n,b:clampN(best),w:clampN(NET.st.w),g:clampN(NET.st.g)}).then(function(){m.textContent='Kaydedildi ✔';pfView()}).catch(function(){m.textContent='Kaydedilemedi (kurallar yayınlandı mı?).'});
+}
+$('pf-open').onclick=function(){
+  $('pf-screen').style.display='flex';pfView();
+  if(FB.on){FB.db.ref('profiles/'+FB.uid).once('value').then(function(sn){
+    if(!sn.exists()){var n=cleanName(NET.nick)||('Oyuncu'+(100+Math.random()*900|0));NET.nick=n;sv('mk_nick',n);
+      return FB.db.ref('profiles/'+FB.uid).set({n:n,b:clampN(best),w:clampN(NET.st.w),g:clampN(NET.st.g)}).then(function(){pfView()})}
+  }).catch(function(){})}
+};
+$('pf-close').onclick=function(){$('pf-screen').style.display='none'};
+
+/* ===== Oyuncular, çevrimiçi durumu, 1v1 daveti ===== */
+var PL={list:[],sel:null,tm:0,mode:'list'};
+function ago(t){var x=Math.max(0,((Date.now()+(FB.off||0)-t)/1000)|0);return x<60?'az önce':x<3600?((x/60)|0)+' dk önce':x<86400?((x/3600)|0)+' sa önce':((x/86400)|0)+' gün önce'}
+function plFind(u){return PL.list.filter(function(y){return y.u===u})[0]}
+function plLoad(){
+  if(!FB.on){$('pl-body').innerHTML='<p style="text-align:center">Bağlantı yok.</p>';return}
+  var ps=[FB.db.ref('profiles').limitToLast(200).once('value'),FB.db.ref('presence').once('value')];
+  if(FB.role==='kurucu')ps.push(FB.db.ref('roles').once('value'));
+  Promise.all(ps).then(function(r){
+    var pr=r[1].val()||{},ro=r[2]?(r[2].val()||{}):null,a=[];
+    r[0].forEach(function(c){var v=c.val()||{},p=pr[c.key]||{},me=c.key===FB.uid;
+      a.push({u:c.key,n:v.n||'?',b:clampN(v.b),w:clampN(v.w),g:clampN(v.g),o:me||p.o===true,t:+p.t||0,r:ro?(ro[c.key]||''):(me?FB.role:'')})});
+    a.sort(function(x,y){return(y.o-x.o)||(y.b-x.b)});
+    PL.list=a;if(PL.mode==='list')plList();
+  }).catch(function(){if(PL.mode==='list')$('pl-body').innerHTML='<p style="text-align:center">Liste alınamadı. Kurallar yayınlandı mı?</p>'});
+}
+function plList(){
+  PL.mode='list';var a=PL.list,on=a.filter(function(x){return x.o}).length;
+  var h='<p style="text-align:center">🟢 '+on+' çevrimiçi · '+a.length+' kayıtlı</p><button class="ob" id="pl-ref" style="margin-top:6px;font-size:14px;padding:8px">🔄 Yenile</button>';
+  h+=a.map(function(x){return'<div class="si" data-u="'+esc(x.u)+'" style="cursor:pointer"><span class="se">'+(x.o?'🟢':'⚪')+'</span><span class="sn"><b>'+esc(String(x.n).slice(0,14))+(x.u===FB.uid?' (sen)':'')+'</b><br><small>'+x.b+' m'+(ROLE_TXT[x.r]?' · '+ROLE_TXT[x.r]:'')+'</small></span><span>›</span></div>'}).join('');
+  $('pl-body').innerHTML=h;
+}
+function plDetail(u){
+  var x=plFind(u);if(!x){plList();return}
+  PL.mode='detail';PL.sel=u;var me=u===FB.uid;
+  var h='<button class="cheat-btn" id="pl-back" style="width:100%;margin-bottom:8px">← Listeye dön</button>';
+  h+='<div class="big2" style="text-align:center;font-size:24px">'+esc(String(x.n).slice(0,14))+'</div>';
+  h+='<p style="text-align:center">'+(x.o?'<span style="color:#2ec4b6">🟢 Çevrimiçi</span>':'⚪ Çevrimdışı'+(x.t?' · '+ago(x.t):''))+'<br>Rekor: <b>'+x.b+' m</b> · '+x.w+' galibiyet / '+x.g+' maç'+(ROLE_TXT[x.r]?'<br>Rol: <b>'+ROLE_TXT[x.r]+'</b>':'')+'</p>';
+  if(!me)h+='<button class="ob" id="pl-inv"'+(x.o?'':' disabled style="opacity:.45"')+'>⚔️ 1v1 teklif et</button>'+(x.o?'':'<p style="text-align:center;font-size:12px">Sadece çevrimiçi oyuncuya teklif gidebilir.</p>');
+  if(FB.role==='kurucu'&&!me){
+    var bs='min-width:0;padding:8px 12px;margin:0 3px';
+    h+='<div class="section-title" style="margin-top:14px">👑 YETKİ</div><div style="display:flex;justify-content:center;margin-top:8px"><button class="sb'+(x.r==='admin'?' on':'')+'" style="'+bs+'" data-role="admin">Admin</button><button class="sb'+(x.r==='alt'?' on':'')+'" style="'+bs+'" data-role="alt">Alt Panel</button><button class="sb no" style="'+bs+'" data-role="">Kaldır</button></div>';
+  }
+  $('pl-body').innerHTML=h+'<p id="pl-msg" style="text-align:center;min-height:18px;font-size:13px"></p>';
+}
+function setRole(u,r){
+  var ref=FB.db.ref('roles/'+u);
+  (r?ref.set(r):ref.remove()).then(function(){var x=plFind(u);if(x)x.r=r;plDetail(u)}).catch(function(){var m=$('pl-msg');if(m)m.textContent='Yazılamadı.'});
+}
+function invAvail(){return st!=='play'&&!NET.phase&&!NET.conn}
+function clrInv(){try{if(FB.sent){FB.sent.onDisconnect().cancel();FB.sent.remove().catch(function(){});FB.sent=null}}catch(e){}}
+var _la0=leaveAll;leaveAll=function(){clrInv();return _la0.apply(this,arguments)};
+function plInvite(u){
+  var m=$('pl-msg'),x=plFind(u);
+  if(!FB.on||!x)return;
+  if(!invAvail()){if(m)m.textContent='Önce mevcut koşuyu ya da maçı bitir.';return}
+  var me=cleanName((FB.prof&&FB.prof.n)||NET.nick)||('Oyuncu'+(100+Math.random()*900|0));
+  NET.nick=me;sv('mk_nick',me);
+  plClose();dropNet();NET.mode='room';NET.phase='search';waitView('Oda kuruluyor…');mkRoom();
+  var ref=FB.db.ref('invites/'+u);FB.sent=ref;
+  ref.set({from:FB.uid,n:me,code:NET.code,t:firebase.database.ServerValue.TIMESTAMP}).then(function(){ref.onDisconnect().remove()}).catch(function(){FB.sent=null;failView('Davet gönderilemedi. Kurallar yayınlandı mı?')});
+}
+function invCheck(){
+  var v=FB.inv,tb=$('inv-toast');
+  if(!v||!v.code||(Date.now()+(FB.off||0)-(+v.t||0))>60000||FB.dis===v.t||!invAvail()){tb.style.display='none';return}
+  $('inv-txt').textContent='⚔️ '+String(v.n||'Biri').slice(0,14)+' seni 1v1\'e çağırıyor';
+  tb.style.display='block';
+}
+setInterval(invCheck,1500);
+$('inv-ok').onclick=function(){
+  var v=FB.inv;if(!v||!invAvail())return;
+  var c=String(v.code).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+  $('inv-toast').style.display='none';FB.dis=v.t;FB.inv=null;
+  try{FB.db.ref('invites/'+FB.uid).remove()}catch(e){}
+  plClose();$('pf-screen').style.display='none';
+  var n=cleanName((FB.prof&&FB.prof.n)||NET.nick);if(n){NET.nick=n;sv('mk_nick',n)}
+  dropNet();NET.mode='room';NET.phase='search';waitView('Odaya giriliyor…');joinRoom(c);
+};
+$('inv-no').onclick=function(){
+  var v=FB.inv;$('inv-toast').style.display='none';if(!v)return;
+  FB.dis=v.t;try{FB.db.ref('invites/'+FB.uid).remove()}catch(e){}
+};
+$('pl-body').addEventListener('click',function(e){
+  var t=e.target;if(!t.closest)return;
+  if(t.closest('#pl-ref')){plLoad();return}
+  if(t.closest('#pl-back')){plList();return}
+  if(t.closest('#pl-inv')){plInvite(PL.sel);return}
+  var rb=t.closest('[data-role]');if(rb){setRole(PL.sel,rb.getAttribute('data-role'));return}
+  var row=t.closest('.si[data-u]');if(row)plDetail(row.getAttribute('data-u'));
+});
+function plOpen(){PL.mode='list';$('pl-screen').style.display='flex';$('pl-body').innerHTML='<p style="text-align:center">Yükleniyor…</p>';plLoad();clearInterval(PL.tm);PL.tm=setInterval(plLoad,8000)}
+function plClose(){$('pl-screen').style.display='none';clearInterval(PL.tm)}
+$('pl-open').onclick=plOpen;$('kur-open').onclick=plOpen;$('pl-close').onclick=plClose;
+fbInit();
 
 reset();document.getElementById('bs').textContent='Rekor '+best;
 requestAnimationFrame(loop);
